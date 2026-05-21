@@ -1,0 +1,1021 @@
+```react
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Shield, 
+  Lock, 
+  User, 
+  Home, 
+  Bell, 
+  Search, 
+  MessageSquare, 
+  FileText, 
+  BookOpen, 
+  ChevronRight, 
+  AlertTriangle, 
+  Send, 
+  Camera, 
+  Grid, 
+  Users, 
+  CheckCircle, 
+  HelpCircle, 
+  LogOut, 
+  Activity, 
+  Smartphone,
+  Monitor,
+  ArrowLeft,
+  MessageCircle,
+  Phone,
+  Video,
+  Building2,
+  GraduationCap
+} from 'lucide-react';
+
+export default function App() {
+  // Pengaturan Navigasi & Peran Pengguna
+  const [userRole, setUserRole] = useState('siswa'); 
+  const [currentScreen, setCurrentScreen] = useState('login'); 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // State Input Form
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginSchool, setLoginSchool] = useState('SMA 1'); 
+  const [activeSchool, setActiveSchool] = useState('SMA 1'); 
+  
+  // Database Guru BK Spesifik untuk SMA 1, SMA 2, dst.
+  const databaseGuruBK = {
+    "SMA 1": [
+      { id: 'g1_1', nama: 'Ibu Ratna, S.Psi', status: 'Online', role: 'Spesialis Mediasi Konflik', imgColor: 'bg-pink-100 text-pink-600', initial: 'IR' },
+      { id: 'g1_2', nama: 'Bpk. Budi Santoso, M.Pd', status: 'Online', role: 'Konselor Kedisiplinan', imgColor: 'bg-blue-100 text-blue-600', initial: 'BS' },
+      { id: 'g1_3', nama: 'Bpk. Anton Pribadi, S.Pd', status: 'Sibuk', role: 'Konselor Mental & Bullying', imgColor: 'bg-orange-100 text-orange-600', initial: 'AP' }
+    ],
+    "SMA 2": [
+      { id: 'g2_1', nama: 'Bpk. Joko Susilo, S.Psi', status: 'Online', role: 'Spesialis Kenakalan Remaja', imgColor: 'bg-slate-100 text-slate-700', initial: 'JS' },
+      { id: 'g2_2', nama: 'Ibu Diana Putri, M.Psi', status: 'Online', role: 'Konselor Psikologi Remaja', imgColor: 'bg-purple-100 text-purple-600', initial: 'DP' },
+      { id: 'g2_3', nama: 'Bpk. Hermawan, S.Pd', status: 'Sibuk', role: 'Pembina Ketertiban Siswa', imgColor: 'bg-teal-100 text-teal-600', initial: 'HW' }
+    ],
+    "SMA 3": [
+      { id: 'g3_1', nama: 'Ibu Siska Rahayu, S.Psi', status: 'Online', role: 'Spesialis Pencegahan Bullying', imgColor: 'bg-rose-100 text-rose-600', initial: 'SR' },
+      { id: 'g3_2', nama: 'Bpk. Letkol (Purn) M. Ridwan', status: 'Online', role: 'Pembina Karakter & Disiplin', imgColor: 'bg-emerald-100 text-emerald-600', initial: 'MR' }
+    ],
+    "SMA 4": [
+      { id: 'g4_1', nama: 'Ibu Amalia S., S.Pd', status: 'Online', role: 'Bimbingan Siswa SMA 4', imgColor: 'bg-amber-100 text-amber-600', initial: 'AS' },
+      { id: 'g4_2', nama: 'Bpk. Danang Wijaya, S.Psi', status: 'Online', role: 'Konseling Sahabat Remaja', imgColor: 'bg-indigo-100 text-indigo-600', initial: 'DW' }
+    ],
+    "SMA 5": [
+      { id: 'g5_1', nama: 'Ibu Citra Lestari, M.Psi', status: 'Online', role: 'Konselor Kesehatan Mental', imgColor: 'bg-cyan-100 text-cyan-600', initial: 'CL' },
+      { id: 'g5_2', nama: 'Bpk. Fahri Hamzah, S.Pd', status: 'Sibuk', role: 'Mediator Masalah Sosial', imgColor: 'bg-red-100 text-red-600', initial: 'FH' }
+    ],
+    "SMA 6": [
+      { id: 'g6_1', nama: 'Bpk. Nugroho, S.T., M.Pd', status: 'Online', role: 'Kepala Kedisiplinan Sekolah', imgColor: 'bg-violet-100 text-violet-600', initial: 'NH' },
+      { id: 'g6_2', nama: 'Ibu Kartika Sari, S.Psi', status: 'Online', role: 'Spesialis Online Counseling', imgColor: 'bg-pink-100 text-pink-600', initial: 'KS' }
+    ]
+  };
+
+  const schoolList = Object.keys(databaseGuruBK);
+
+  // Kamus kosakata slang provokasi modern dengan penjelasan artinya
+  const kamusProvokasi = {
+    'by one': 'Ajakan duel atau perkelahian satu lawan satu.',
+    'sajam': 'Senjata tajam (seperti celurit, parang, gear rantai motor, dll).',
+    'bawa besi': 'Membawa senjata tajam atau senjata tumpul dari bahan besi.',
+    'bawa mainan': 'Istilah terselubung yang digunakan untuk menyebut senjata tajam.',
+    'palkon': 'Kata makian kasar untuk memprovokasi emosi pihak lawan.',
+    'sweeping': 'Konvoi mencari kelompok musuh secara beramai-ramai di jalanan.',
+    'basis': 'Kelompok tongkrongan aliansi sekolah atau rute angkutan tertentu.',
+    'geser': 'Mobilisasi massa menuju titik kumpul atau area tawuran.',
+    'cod': 'Ketemuan di lokasi tertentu yang disepakati khusus untuk bentrok.',
+    'ratain': 'Ajakan untuk merusak tongkrongan musuh atau membantai lawan.',
+    'tongkrongan': 'Tempat berkumpulnya geng sekolah yang rawan bentrokan.',
+    'pecah': 'Terjadinya bentrokan fisik/tawuran di lapangan.',
+    'back up': 'Meminta bantuan pasukan tambahan atau alumni.',
+    'clurit': 'Senjata tajam jenis sabit panjang yang khas dalam tawuran.',
+    'celurit': 'Senjata tajam jenis sabit panjang.',
+    'pukul': 'Tindakan penyerangan fisik.',
+    'hajar': 'Tindakan kekerasan fisik.',
+    'serang': 'Penyerangan berkelompok.',
+    'bocor': 'Luka robek pada fisik atau kepala akibat hantaman.',
+    'cegat': 'Menghadang kelompok sekolah lawan di jalur pulang.',
+    'mabar': 'Digunakan menyamar seolah mabar game, padahal mabar tawuran.',
+    'gas': 'Seruan untuk memulai penyerangan seketika.',
+    'ribut': 'Perkelahian.',
+    'stm': 'Solidaritas kelompok tawuran sekolah kejuruan.',
+    'matiin': 'Ancaman pembunuhan atau cedera fatal.',
+    'bawa pasukan': 'Memanggil massa pendukung dalam jumlah banyak.',
+    'pangkalan': 'Basecamp kumpul kelompok tawuran.',
+    'kandang': 'Wilayah atau area kekuasaan sekolah musuh.',
+    'batu': 'Amunisi lemparan tawuran.'
+  };
+
+  // State Fitur Detektor Chat
+  const [detectorMessages, setDetectorMessages] = useState([]); 
+  const [newDetectText, setNewDetectText] = useState('');
+  const [detectedWords, setDetectedWords] = useState([]);
+  const [isDetected, setIsDetected] = useState(false);
+  const [isSafe, setIsSafe] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+
+  // State Fitur Laporan Konflik
+  const [reportName, setReportName] = useState('');
+  const [reportClass, setReportClass] = useState('');
+  const [reportDesc, setReportDesc] = useState('');
+  const [reportsList, setReportsList] = useState([
+    { id: 1, sender: 'Siswa X-2', desc: 'Dugaan tawuran berkumpul sepulang sekolah', status: 'Baru', time: '14.45' },
+    { id: 2, sender: 'Siswa XI-5', desc: 'Perselisihan antar kelompok di media sosial', status: 'Proses', time: 'Kemarin' },
+    { id: 3, sender: 'Siswa XII-3', desc: 'Ejekan yang memicu permusuhan', status: 'Selesai', time: '24 Mei' }
+  ]);
+  const [reportSuccess, setReportSuccess] = useState(false);
+
+  // State Fitur Konsultasi BK 
+  const [selectedGuru, setSelectedGuru] = useState(null);
+  const [consultMessages, setConsultMessages] = useState([]);
+  const [newConsultText, setNewConsultText] = useState('');
+
+  // State Fitur BK Dashboard (Guru)
+  const [dashboardTab, setDashboardTab] = useState('dashboard');
+  const [bkNotifications, setBkNotifications] = useState([
+    { id: 1, title: 'Terdeteksi kata provokasi tawuran', detail: 'Grup: X-2 Boys | Kata: serang, ajak, lawan', time: '15.20', isNew: true },
+    { id: 2, title: 'Potensi konflik antar siswa', detail: 'Grup: X-4 Friends | Kata: ketemu, bawa teman', time: '09.45', isNew: true },
+    { id: 3, title: 'Peringatan kata tidak pantas', detail: 'Grup: XI-Ips 1 | Kata: bodoh, lawan', time: 'Kemarin', isNew: false }
+  ]);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!loginSchool) {
+      alert("Harap pilih instansi/sekolah Anda terlebih dahulu!");
+      return;
+    }
+
+    setActiveSchool(loginSchool);
+    setIsLoggedIn(true);
+
+    if (loginUsername.toLowerCase().includes('guru') || loginUsername.toLowerCase().includes('ratna') || userRole === 'guru') {
+      setUserRole('guru');
+      setDashboardTab('dashboard');
+    } else {
+      setUserRole('siswa');
+      setCurrentScreen('beranda');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentScreen('login');
+    setLoginUsername('');
+    setLoginPassword('');
+    setLoginSchool('SMA 1');
+    setDetectorMessages([]);
+    setDetectedWords([]);
+    setIsDetected(false);
+    setIsSafe(false);
+    setSelectedGuru(null);
+    setConsultMessages([]);
+  };
+
+  // Fungsi Deteksi Chat Utama
+  const handleAddDetectMessage = (e) => {
+    if (e) e.preventDefault();
+    processDetection(newDetectText);
+  };
+
+  const processDetection = (text) => {
+    if (!text.trim()) return;
+    
+    setIsScanning(true);
+    setIsSafe(false);
+    setIsDetected(false);
+    setDetectedWords([]);
+    
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const updatedMessages = [{ sender: 'Teks yang dimasukkan', text: text, time: timeNow }];
+    setDetectorMessages(updatedMessages);
+    setNewDetectText(''); 
+    
+    setTimeout(() => {
+      const lowerText = text.toLowerCase();
+      let detected = [];
+      
+      // Deteksi kata kunci dengan pencarian cerdas
+      Object.keys(kamusProvokasi).forEach(word => {
+        if(word.includes(' ')) {
+           if(lowerText.includes(word)) detected.push(word);
+        } else {
+           const regex = new RegExp(`\\b${word}\\b|${word}`, 'i');
+           if (regex.test(lowerText)) detected.push(word);
+        }
+      });
+      
+      setIsScanning(false);
+      
+      if (detected.length > 0) {
+        // Hilangkan duplikasi kata terdeteksi
+        const uniqueDetected = Array.from(new Set(detected));
+        setDetectedWords(uniqueDetected);
+        setIsDetected(true);
+      } else {
+        setIsSafe(true);
+      }
+    }, 1200); 
+  };
+
+  const handleSendReport = (e) => {
+    e.preventDefault();
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const newReportItem = {
+      id: Date.now(),
+      sender: reportName ? `Siswa ${reportName}` : `Siswa Anonim (${reportClass || 'Umum'})`,
+      desc: reportDesc,
+      status: 'Baru',
+      time: timeNow
+    };
+    
+    setReportsList([newReportItem, ...reportsList]);
+    setReportSuccess(true);
+    setTimeout(() => {
+      setReportSuccess(false);
+      setReportName('');
+      setReportClass('');
+      setReportDesc('');
+      setCurrentScreen('beranda');
+    }, 2000);
+  };
+
+  const startConsultation = (guru) => {
+    setSelectedGuru(guru);
+    setConsultMessages([
+      { sender: 'bk', text: `Halo, saya ${guru.nama} dari tim BK ${activeSchool}. Ada yang ingin kamu sampaikan atau ceritakan? Obrolan ini aman dan rahasia.`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+    ]);
+  };
+
+  const handleSendConsult = (e) => {
+    e.preventDefault();
+    if (!newConsultText.trim()) return;
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setConsultMessages([...consultMessages, { sender: 'user', text: newConsultText, time: timeNow }]);
+    setNewConsultText('');
+
+    setTimeout(() => {
+      setConsultMessages(prev => [...prev, {
+        sender: 'bk',
+        text: `Terima kasih sudah melapor ke tim BK ${activeSchool}. Masalah ini kami catat secara anonim dan akan segera kami selidiki demi keamanan bersama. Tetap tenang dan selalu jaga dirimu ya.`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    }, 1500);
+  };
+
+  // Mengambil daftar guru BK berdasarkan sekolah aktif
+  const guruTersedia = databaseGuruBK[activeSchool] || databaseGuruBK["SMA 1"];
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between font-sans">
+      
+      {/* Top Controller Bar */}
+      <div className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex flex-wrap gap-3 items-center justify-between z-50">
+        <div className="flex items-center gap-2">
+          <div className="bg-blue-600 p-2 rounded-lg text-white">
+            <Shield className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="font-bold text-sm tracking-wide block">SafeSchool AI</span>
+            <span className="text-[11px] text-slate-400">Prototype Simulator Interaktif</span>
+          </div>
+        </div>
+
+        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-700">
+          <button 
+            onClick={() => {
+              setUserRole('siswa');
+              if (!isLoggedIn) setCurrentScreen('login');
+              else if (currentScreen === 'login') setCurrentScreen('beranda');
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              userRole === 'siswa' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            Sisi Siswa
+          </button>
+          <button 
+            onClick={() => {
+              setUserRole('guru');
+              setIsLoggedIn(true);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              userRole === 'guru' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Monitor className="w-3.5 h-3.5" />
+            Dashboard BK
+          </button>
+        </div>
+
+        {isLoggedIn && (
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-1 px-3 py-1.5 bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 rounded-lg text-xs font-medium transition"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Keluar
+          </button>
+        )}
+      </div>
+
+      <div className="flex-1 w-full max-w-7xl mx-auto p-4 flex items-center justify-center">
+        
+        {/* VIEW 1: SISWA (MOBILE PHONE EMULATOR) */}
+        {userRole === 'siswa' && (
+          <div className="w-[375px] h-[780px] bg-slate-950 rounded-[40px] shadow-[0_0_50px_rgba(30,58,138,0.3)] border-[12px] border-slate-800 overflow-hidden flex flex-col relative">
+            
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-slate-800 rounded-b-2xl z-50 flex items-center justify-center">
+              <div className="w-12 h-1 bg-slate-900 rounded-full mb-1"></div>
+            </div>
+
+            <div className="h-10 bg-[#1e40af] flex justify-between items-end px-6 pb-1 text-[11px] font-semibold text-white z-40">
+              <span>09:41</span>
+              <div className="flex items-center gap-1.5">
+                <span>5G</span>
+                <div className="w-5 h-2.5 border border-white rounded-sm p-0.5 flex items-center">
+                  <div className="w-full h-full bg-white rounded-2xs"></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto bg-slate-50 text-slate-800 flex flex-col relative pb-16">
+              
+              {/* --- 1. LOGIN SCREEN --- */}
+              {currentScreen === 'login' && (
+                <div className="flex-1 flex flex-col justify-between bg-white px-6 py-8 pt-6 min-h-full">
+                  <div className="flex flex-col items-center text-center mt-2">
+                    <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200 mb-3">
+                      <Shield className="w-10 h-10" />
+                    </div>
+                    <h1 className="text-xl font-bold text-blue-900 leading-tight">SafeSchool <span className="text-emerald-500">AI</span></h1>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">Platform Keamanan Pelajar Terpadu</p>
+                  </div>
+
+                  <form onSubmit={handleLogin} className="space-y-3 my-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400" /> Pilih Sekolah / Instansi
+                      </label>
+                      <div className="relative">
+                        <select 
+                          required
+                          value={loginSchool}
+                          onChange={(e) => setLoginSchool(e.target.value)}
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-slate-800 appearance-none shadow-sm"
+                        >
+                          {schoolList.map((school, idx) => (
+                            <option key={idx} value={school}>{school}</option>
+                          ))}
+                        </select>
+                        <ChevronRight className="w-4 h-4 text-slate-400 absolute right-4 top-3.5 transform rotate-90 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-slate-400" /> Username / NIS
+                      </label>
+                      <input 
+                        type="text" 
+                        required
+                        value={loginUsername}
+                        onChange={(e) => setLoginUsername(e.target.value)}
+                        placeholder="Ketik username Anda..." 
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-slate-800 shadow-sm"
+                      />
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-slate-400" /> Password
+                      </label>
+                      <input 
+                        type="password" 
+                        required
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="••••••••" 
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-slate-800 shadow-sm"
+                      />
+                    </div>
+
+                    <button 
+                      type="submit"
+                      className="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-md shadow-blue-100 hover:bg-blue-700 transition active:scale-[0.98] mt-2"
+                    >
+                      MASUK APLIKASI
+                    </button>
+                  </form>
+
+                  <div className="w-full pt-2 mt-auto">
+                     <div className="relative h-16 w-full flex items-end justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-100 to-transparent rounded-t-3xl -z-10"></div>
+                      <div className="w-32 h-12 bg-blue-800 rounded-t-xl relative border-t-4 border-blue-950 flex flex-col justify-end items-center pb-1">
+                        <div className="absolute -top-5 w-8 h-6 bg-blue-800 border-t-2 border-slate-900 rounded-t-md flex flex-col items-center">
+                          <div className="w-2.5 h-2.5 bg-white rounded-full border border-blue-900 flex items-center justify-center mt-1"></div>
+                        </div>
+                        <div className="w-4 h-5 bg-slate-900 rounded-t-xs"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* --- 2. BERANDA SISWA --- */}
+              {currentScreen === 'beranda' && (
+                <div className="flex-1 flex flex-col bg-slate-50 animate-fadeIn font-sans">
+                  <div className="bg-[#1e40af] text-white pt-6 pb-12 px-5 rounded-b-[2rem] shadow-lg flex justify-between items-start">
+                    <div>
+                      <h2 className="text-xl font-bold tracking-tight">Halo, Pelajar! 👋</h2>
+                      <div className="flex items-center gap-1.5 mt-1 opacity-90">
+                        <GraduationCap className="w-3.5 h-3.5 text-blue-200" />
+                        <p className="text-[11px] text-blue-100 font-medium">{activeSchool}</p>
+                      </div>
+                    </div>
+                    <button className="bg-blue-700/60 p-2 rounded-full relative hover:bg-blue-700 transition">
+                      <Bell className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="px-4 -mt-6 flex-1">
+                    <div className="grid grid-cols-2 gap-4">
+                      <button onClick={() => setCurrentScreen('deteksi')} className="bg-white p-5 rounded-3xl shadow-md border border-slate-100 flex flex-col items-start text-left hover:border-blue-100 hover:shadow-lg transition group">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                          <MessageSquare className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-bold text-slate-800 text-sm">Deteksi Chat</h3>
+                        <p className="text-[11px] text-slate-400 mt-1">AI mendeteksi kata provokasi</p>
+                      </button>
+
+                      <button onClick={() => setCurrentScreen('lapor')} className="bg-white p-5 rounded-3xl shadow-md border border-slate-100 flex flex-col items-start text-left hover:border-blue-100 hover:shadow-lg transition group">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-bold text-slate-800 text-sm">Laporan Konflik</h3>
+                        <p className="text-[11px] text-slate-400 mt-1">Lapor kejadian anonim & aman</p>
+                      </button>
+
+                      <button onClick={() => setCurrentScreen('edukasi')} className="bg-white p-5 rounded-3xl shadow-md border border-slate-100 flex flex-col items-start text-left hover:border-blue-100 hover:shadow-lg transition group">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                          <BookOpen className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-bold text-slate-800 text-sm">Edukasi</h3>
+                        <p className="text-[11px] text-slate-400 mt-1">Materi anti tawuran</p>
+                      </button>
+
+                      <button onClick={() => {setCurrentScreen('konsul'); setSelectedGuru(null);}} className="bg-white p-5 rounded-3xl shadow-md border border-slate-100 flex flex-col items-start text-left hover:border-blue-100 hover:shadow-lg transition group">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                          <Users className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-bold text-slate-800 text-sm">Konsultasi BK</h3>
+                        <p className="text-[11px] text-slate-400 mt-1">Chat privat Guru BK</p>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* --- 3. DETEKSI CHAT SCREEN (PILIHAN CHAT BERSIH TANPA PRESET) --- */}
+              {currentScreen === 'deteksi' && (
+                <div className="flex-1 flex flex-col bg-slate-50 animate-fadeIn">
+                  <div className="bg-[#1e40af] text-white px-4 py-3 flex items-center justify-between shadow-sm">
+                    <button onClick={() => setCurrentScreen('beranda')} className="p-1 hover:bg-blue-700 rounded-full">
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-sm font-bold">Deteksi Chat AI</h2>
+                    <button 
+                      onClick={() => {
+                        setDetectorMessages([]);
+                        setIsDetected(false);
+                        setIsSafe(false);
+                        setDetectedWords([]);
+                      }} 
+                      className="text-[10px] font-bold text-blue-200 hover:text-white"
+                    >
+                      RESET
+                    </button>
+                  </div>
+
+                  <div className="p-4 flex-1 flex flex-col overflow-y-auto">
+                    
+                    <div className="mb-4">
+                      <form onSubmit={handleAddDetectMessage} className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-600 ml-1">Ketik atau Tempel Chat Anda:</label>
+                        <textarea 
+                          value={newDetectText}
+                          onChange={(e) => setNewDetectText(e.target.value)}
+                          rows="5"
+                          placeholder="Ketik atau paste isi pesan mencurigakan dari grup chat di sini untuk dianalisis oleh AI..." 
+                          className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-sm text-slate-700"
+                        />
+                        <button 
+                          type="submit"
+                          disabled={!newDetectText.trim() || isScanning}
+                          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition active:scale-95 shadow-sm"
+                        >
+                          <Search className="w-4 h-4" /> 
+                          {isScanning ? 'AI Sedang Menganalisis...' : 'Analisis Teks'}
+                        </button>
+                      </form>
+                    </div>
+
+                    {isScanning && (
+                      <div className="flex-1 flex flex-col items-center justify-center py-6 space-y-3 animate-pulse">
+                        <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        <p className="text-xs text-slate-500 font-bold">AI sedang memproses slang bahasa...</p>
+                      </div>
+                    )}
+
+                    {!isScanning && detectorMessages.length > 0 && (
+                      <div className="flex-1 flex flex-col space-y-4 animate-fadeIn">
+                        <h3 className="font-bold text-xs text-slate-700 border-b border-slate-200 pb-1">Hasil Analisis Keamanan</h3>
+                        
+                        <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-inner">
+                          {detectorMessages.map((msg, i) => (
+                            <div key={i} className="flex flex-col text-xs">
+                              <p className="bg-slate-50 text-slate-600 p-2.5 rounded-xl border border-slate-100 leading-relaxed italic">"{msg.text}"</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {isDetected && (
+                          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 animate-bounce-subtle">
+                            <div className="flex items-start gap-2 text-red-700 font-bold text-sm mb-1">
+                              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                              <span>⚠️ TERDETEKSI BAHAYA KONFLIK!</span>
+                            </div>
+                            <p className="text-xs text-red-700 leading-relaxed font-semibold">
+                              Ditemukan unsur provokasi slang remaja berbahaya.
+                            </p>
+                            
+                            {/* Terjemahan Istilah Terselubung */}
+                            <div className="mt-3 pt-3 border-t border-red-200 space-y-2">
+                              <span className="text-[11px] text-red-600 font-bold block">Definisi Istilah Remaja (AI Translator):</span>
+                              <div className="space-y-1.5">
+                                {detectedWords.map((word, idx) => (
+                                  <div key={idx} className="bg-white border border-red-100 p-2 rounded-xl text-[10px] text-slate-700 flex flex-col">
+                                    <span className="font-bold text-red-600 capitalize">"{word}"</span>
+                                    <span className="text-slate-500 italic mt-0.5">{kamusProvokasi[word.toLowerCase()] || 'Konteks kekerasan terdeteksi.'}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <button 
+                              onClick={() => {
+                                setReportDesc(detectorMessages[detectorMessages.length-1].text);
+                                setCurrentScreen('lapor');
+                              }}
+                              className="mt-4 w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm"
+                            >
+                              <FileText className="w-4 h-4" /> Laporkan Kejadian Ini
+                            </button>
+                          </div>
+                        )}
+
+                        {isSafe && (
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 animate-in slide-in-from-bottom-2">
+                            <div className="flex items-start gap-2 text-emerald-700 font-bold text-sm mb-1">
+                              <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                              <span>AMAN</span>
+                            </div>
+                            <p className="text-xs text-emerald-700 leading-relaxed">
+                              Tidak ditemukan istilah slang berbahaya dalam teks chat ini.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* --- 4. LAPORAN KONFLIK SCREEN --- */}
+              {currentScreen === 'lapor' && (
+                <div className="flex-1 flex flex-col bg-slate-50 animate-fadeIn">
+                  <div className="bg-[#1e40af] text-white px-4 py-3 flex items-center justify-between shadow-sm">
+                    <button onClick={() => setCurrentScreen('beranda')} className="p-1 hover:bg-blue-700 rounded-full">
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-sm font-bold">Laporan Konflik</h2>
+                    <div className="w-5 h-5"></div>
+                  </div>
+
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      {reportSuccess ? (
+                        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-6 rounded-2xl text-center space-y-3 animate-in zoom-in duration-300 my-8">
+                          <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                            <CheckCircle className="w-6 h-6" />
+                          </div>
+                          <h3 className="font-bold text-sm">Laporan Terkirim!</h3>
+                          <p className="text-xs text-emerald-700">Terima kasih telah membantu menjaga keamanan <b>{activeSchool}</b> secara anonim.</p>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleSendReport} className="space-y-4">
+                          <input 
+                            type="text" 
+                            value={reportName}
+                            onChange={(e) => setReportName(e.target.value)}
+                            placeholder="Nama (opsional - kosongkan jika anonim)" 
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 text-slate-800 shadow-sm"
+                          />
+                          <input 
+                            type="text" 
+                            value={reportClass}
+                            onChange={(e) => setReportClass(e.target.value)}
+                            placeholder="Kelas (opsional)" 
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 text-slate-800 shadow-sm"
+                          />
+                          <textarea 
+                            required
+                            value={reportDesc}
+                            onChange={(e) => setReportDesc(e.target.value)}
+                            rows="5"
+                            placeholder="Ceritakan detail kejadian atau tempel chat provokasi di sini..." 
+                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 text-slate-800 shadow-sm resize-none"
+                          />
+                          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 flex items-center gap-2 text-blue-900 text-[11px] font-semibold">
+                            <Lock className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                            <span>Laporan kamu dienkripsi dan bersifat rahasia.</span>
+                          </div>
+                          <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition active:scale-95">
+                            KIRIM LAPORAN RAHASIA
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* --- 5. EDUKASI SCREEN --- */}
+              {currentScreen === 'edukasi' && (
+                <div className="flex-1 flex flex-col bg-slate-50 animate-fadeIn">
+                  <div className="bg-[#1e40af] text-white px-4 py-3 flex items-center justify-between shadow-sm">
+                    <button onClick={() => setCurrentScreen('beranda')} className="p-1 hover:bg-blue-700 rounded-full">
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-sm font-bold">Edukasi Anti Tawuran</h2>
+                    <div className="w-5 h-5"></div>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div className="bg-blue-100 rounded-2xl p-4 flex flex-col items-center justify-center border border-blue-200 relative overflow-hidden h-32 text-center">
+                      <div className="absolute top-2 right-2 bg-red-500 text-white font-bold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        STOP TAWURAN
+                      </div>
+                      <div className="flex gap-4 items-end mb-1">
+                        <div className="w-8 h-12 bg-slate-300 rounded-full relative flex items-center justify-center"><div className="w-4 h-4 bg-slate-400 rounded-full absolute -top-4"></div></div>
+                        <div className="w-8 h-14 bg-blue-500 rounded-full relative flex items-center justify-center"><div className="w-4 h-4 bg-slate-400 rounded-full absolute -top-4"></div></div>
+                        <div className="w-8 h-12 bg-slate-300 rounded-full relative flex items-center justify-center"><div className="w-4 h-4 bg-slate-400 rounded-full absolute -top-4"></div></div>
+                      </div>
+                      <span className="text-xs font-bold text-blue-900 z-10">Generasi Cerdas Bebas Kekerasan</span>
+                    </div>
+                    <div className="space-y-2">
+                      {[
+                        { title: 'Apa Itu Tawuran?', icon: <HelpCircle className="w-4 h-4 text-blue-600" /> },
+                        { title: 'Dampak Negatif Tawuran', icon: <AlertTriangle className="w-4 h-4 text-orange-500" /> },
+                        { title: 'Hukum Bawa Senjata Tajam', icon: <Shield className="w-4 h-4 text-red-600" /> },
+                        { title: 'Cara Menyelesaikan Masalah', icon: <CheckCircle className="w-4 h-4 text-emerald-500" /> },
+                      ].map((item, idx) => (
+                        <div key={idx} className="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-slate-50 rounded-lg">{item.icon}</div>
+                            <span className="text-xs font-bold text-slate-700">{item.title}</span>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* --- 6. KONSULTASI BK SCREEN (SENSITIF TERHADAP SEKOLAH AKTIF) --- */}
+              {currentScreen === 'konsul' && (
+                <div className="flex-1 flex flex-col bg-slate-50 animate-fadeIn h-full">
+                  <div className="bg-[#1e40af] text-white px-4 py-3 flex items-center justify-between shadow-md">
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => {
+                          if (selectedGuru) setSelectedGuru(null);
+                          else setCurrentScreen('beranda');
+                        }} 
+                        className="p-1 hover:bg-blue-700 rounded-full"
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                      </button>
+                      <h2 className="text-sm font-bold">
+                        {selectedGuru ? selectedGuru.nama : 'Pilih Guru BK'}
+                      </h2>
+                    </div>
+                  </div>
+
+                  {/* DAFTAR GURU BK MENYESUAIKAN DENGAN SEKOLAH AKTIF */}
+                  {!selectedGuru ? (
+                    <div className="p-4 space-y-4 flex-1 overflow-y-auto">
+                      <p className="text-xs text-slate-500 font-medium">
+                        Pilih Guru Bimbingan Konseling <b>{activeSchool}</b> yang sedang aktif untuk memulai obrolan rahasia.
+                      </p>
+                      
+                      <div className="space-y-3">
+                        {guruTersedia.map((guru) => (
+                          <div 
+                            key={guru.id} 
+                            onClick={() => guru.status === 'Online' && startConsultation(guru)}
+                            className={`p-4 rounded-2xl border flex items-center justify-between transition ${
+                              guru.status === 'Online' 
+                                ? 'bg-white border-slate-200 shadow-sm cursor-pointer hover:border-blue-300' 
+                                : 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${guru.imgColor}`}>
+                                {guru.initial}
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-slate-800 text-sm">{guru.nama}</h3>
+                                <p className="text-[10px] text-slate-500">{guru.role}</p>
+                                <div className="flex items-center gap-1 mt-1">
+                                  <span className={`w-2 h-2 rounded-full ${guru.status === 'Online' ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
+                                  <span className={`text-[10px] font-bold ${guru.status === 'Online' ? 'text-emerald-600' : 'text-orange-600'}`}>{guru.status}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {guru.status === 'Online' && (
+                              <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                                <MessageCircle className="w-4 h-4" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col h-full bg-slate-50">
+                      <div className="bg-white px-4 py-2 border-b border-slate-200 flex justify-between items-center shadow-sm z-10">
+                        <div className="flex items-center gap-2">
+                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${selectedGuru.imgColor}`}>
+                              {selectedGuru.initial}
+                            </div>
+                            <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> Online
+                            </span>
+                        </div>
+                        <div className="flex gap-3 text-slate-400">
+                          <Phone className="w-4 h-4" />
+                          <Video className="w-4 h-4" />
+                        </div>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col max-h-[300px]">
+                        <span className="text-[10px] text-slate-400 self-center bg-slate-200 px-3 py-1 rounded-full mb-1">Hari ini</span>
+                        {consultMessages.map((msg, index) => (
+                          <div key={index} className={`flex flex-col max-w-[85%] ${msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'}`}>
+                            <div className={`p-3 rounded-2xl text-xs leading-relaxed ${msg.sender === 'user' ? 'bg-blue-600 text-white rounded-tr-none shadow-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none shadow-sm'}`}>
+                              {msg.text}
+                            </div>
+                            <span className="text-[9px] text-slate-400 mt-1 px-1">{msg.time}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-3 bg-white border-t border-slate-200 mt-auto space-y-2">
+                        <form onSubmit={handleSendConsult} className="flex gap-2">
+                          <input 
+                            type="text" 
+                            value={newConsultText}
+                            onChange={(e) => setNewConsultText(e.target.value)}
+                            placeholder="Ketik pesan kepada Guru BK..." 
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800"
+                          />
+                          <button type="submit" disabled={!newConsultText.trim()} className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white p-2.5 rounded-full flex items-center justify-center transition active:scale-95">
+                            <Send className="w-4.5 h-4.5" />
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* --- 7. PROFIL --- */}
+              {currentScreen === 'profile' && (
+                <div className="flex-1 flex flex-col bg-slate-50 animate-fadeIn p-5 text-center">
+                  <div className="w-20 h-20 bg-slate-200 rounded-full mx-auto flex items-center justify-center text-slate-500 mb-3 border-2 border-white shadow-md">
+                    <User className="w-10 h-10" />
+                  </div>
+                  <h3 className="font-bold text-slate-800 text-base">{loginUsername || 'Siswa_Aktif'}</h3>
+                  <p className="text-xs text-blue-600 font-bold">{activeSchool}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">ID: S-2026-9121</p>
+
+                  <div className="mt-6 text-left space-y-3">
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                      <span className="font-semibold text-slate-700">Status Keamanan</span>
+                      <span className="text-emerald-600 font-bold">Terlindungi</span>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full mt-8 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold transition"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              )}
+
+            </div>
+
+            {/* Bottom Nav Bar */}
+            {isLoggedIn && currentScreen !== 'login' && (
+              <div className="absolute bottom-0 w-full h-[64px] bg-white border-t border-slate-200 flex justify-around items-center px-4 z-40 pb-2">
+                <button onClick={() => setCurrentScreen('beranda')} className={`flex flex-col items-center gap-0.5 ${currentScreen === 'beranda' ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                  <Home className="w-5 h-5" />
+                  <span className="text-[10px]">Beranda</span>
+                </button>
+                <button onClick={() => setCurrentScreen('deteksi')} className={`flex flex-col items-center gap-0.5 ${currentScreen === 'deteksi' ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                  <Search className="w-5 h-5" />
+                  <span className="text-[10px]">Deteksi AI</span>
+                </button>
+                <button onClick={() => setCurrentScreen('lapor')} className={`flex flex-col items-center gap-0.5 ${currentScreen === 'lapor' ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                  <FileText className="w-5 h-5" />
+                  <span className="text-[10px]">Lapor</span>
+                </button>
+                <button onClick={() => {setCurrentScreen('konsul'); setSelectedGuru(null);}} className={`flex flex-col items-center gap-0.5 ${currentScreen === 'konsul' ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                  <Users className="w-5 h-5" />
+                  <span className="text-[10px]">Guru BK</span>
+                </button>
+                <button onClick={() => setCurrentScreen('profile')} className={`flex flex-col items-center gap-0.5 ${currentScreen === 'profile' ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                  <User className="w-5 h-5" />
+                  <span className="text-[10px]">Profil</span>
+                </button>
+              </div>
+            )}
+            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-slate-300 rounded-full z-50"></div>
+          </div>
+        )}
+
+        {/* VIEW 2: GURU BK (DASHBOARD TABLET/PC PANEL) */}
+        {userRole === 'guru' && (
+          <div className="w-full h-[760px] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-800 flex animate-fadeIn text-slate-800">
+             <div className="w-64 bg-[#0a192f] text-white flex flex-col justify-between p-4 border-r border-slate-800">
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 p-2 bg-slate-900/60 rounded-xl border border-slate-800">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full overflow-hidden flex items-center justify-center text-blue-900 border-2 border-blue-500">
+                    <Building2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">Admin BK</h3>
+                    <p className="text-[10px] text-blue-300">{activeSchool}</p>
+                    <p className="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Sistem Aktif
+                    </p>
+                  </div>
+                </div>
+
+                <nav className="space-y-1">
+                  {[
+                    { id: 'dashboard', label: 'Dashboard', icon: <Grid className="w-4.5 h-4.5" /> },
+                    { id: 'notif', label: 'Notifikasi', icon: <Bell className="w-4.5 h-4.5" />, badge: 2 },
+                    { id: 'laporan', label: 'Laporan Masuk', icon: <FileText className="w-4.5 h-4.5" />, badge: reportsList.filter(r => r.status === 'Baru').length },
+                    { id: 'monitoring', label: 'Monitoring Chat', icon: <MessageSquare className="w-4.5 h-4.5" /> },
+                    { id: 'konseling', label: 'Konseling Siswa', icon: <Users className="w-4.5 h-4.5" /> }
+                  ].map((item) => (
+                    <button key={item.id} onClick={() => setDashboardTab(item.id)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition ${dashboardTab === item.id ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}>
+                      <div className="flex items-center gap-2.5">{item.icon}<span>{item.label}</span></div>
+                      {item.badge && <span className="bg-red-500 text-white font-bold text-[9px] px-2 py-0.5 rounded-full">{item.badge}</span>}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+              <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold text-red-400 hover:bg-red-950/40 hover:text-red-300 transition mt-auto">
+                <LogOut className="w-4.5 h-4.5" /><span>Keluar</span>
+              </button>
+            </div>
+
+            <div className="flex-1 bg-slate-50 p-6 overflow-y-auto flex flex-col justify-between">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Dasbor Terpadu Guru BK</h1>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">Memantau keamanan siswa <b>{activeSchool}</b></p>
+                </div>
+                <div className="text-xs font-bold text-slate-700 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm flex items-center gap-2">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full animate-ping"></span>
+                  Sistem Real-time
+                </div>
+              </div>
+              
+              {dashboardTab === 'dashboard' && (
+                <div className="space-y-6">
+                  {/* Dashboard Stats */}
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                      <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center"><AlertTriangle className="w-5 h-5" /></div>
+                      <div><span className="text-2xl font-extrabold text-slate-900 block">2</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Peringatan</span></div>
+                    </div>
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                      <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center"><AlertTriangle className="w-5 h-5" /></div>
+                      <div><span className="text-2xl font-extrabold text-slate-900 block">3</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Potensi Konflik</span></div>
+                    </div>
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                      <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><FileText className="w-5 h-5" /></div>
+                      <div><span className="text-2xl font-extrabold text-slate-900 block">{reportsList.filter(r => r.status === 'Baru').length}</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Laporan Baru</span></div>
+                    </div>
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                      <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center"><Shield className="w-5 h-5" /></div>
+                      <div><span className="text-sm font-bold text-emerald-800 block">Sekolah Aman</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Terus Pertahankan</span></div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                      <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                        <h2 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-slate-400" /> Notifikasi Peringatan
+                        </h2>
+                        <span className="text-[11px] text-blue-600 hover:underline cursor-pointer font-semibold">Lihat Semua</span>
+                      </div>
+                      <div className="space-y-3">
+                        {bkNotifications.map((notif) => (
+                          <div key={notif.id} className="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200 flex justify-between items-start transition">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                                <h4 className="text-xs font-bold text-slate-800">{notif.title}</h4>
+                                {notif.isNew && <span className="bg-red-100 text-red-700 text-[9px] font-bold px-1.5 py-0.5 rounded">Baru</span>}
+                              </div>
+                              <p className="text-[11px] text-slate-500">{notif.detail}</p>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-medium">{notif.time}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                      <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                        <h2 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-slate-400" /> Laporan Masuk Terbaru
+                        </h2>
+                        <span className="text-[11px] text-blue-600 hover:underline cursor-pointer font-semibold">Lihat Semua</span>
+                      </div>
+                      <div className="space-y-3">
+                        {reportsList.slice(0, 3).map((rep) => (
+                          <div key={rep.id} className="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200 flex justify-between items-start transition">
+                            <div className="space-y-1">
+                              <h4 className="text-xs font-bold text-slate-800">Laporan dari {rep.sender}</h4>
+                              <p className="text-[11px] text-slate-500 line-clamp-1">{rep.desc}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-1.5">
+                              <span className="text-[10px] text-slate-400 font-medium">{rep.time}</span>
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                                rep.status === 'Baru' ? 'bg-red-100 text-red-700' :
+                                rep.status === 'Proses' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-emerald-100 text-emerald-700'
+                              }`}>
+                                {rep.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+               {dashboardTab !== 'dashboard' && (
+                <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm min-h-[400px] flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                    <Grid className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">Area Modul Admin</h3>
+                  <button onClick={() => setDashboardTab('dashboard')} className="mt-6 px-6 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl shadow">Kembali ke Dashboard</button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+      </div>
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes bounce-subtle { 0%, 100% { transform: translateY(-2%); } 50% { transform: translateY(0); } }
+        .animate-bounce-subtle { animation: bounce-subtle 2s infinite ease-in-out; }
+      `}} />
+    </div>
+  );
+}
+
+function InfoIcon(props) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+  );
+}
+
+```
